@@ -1,0 +1,139 @@
+﻿<Window x:Name="SignUp" x:Class="SimpleNote.Registration"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SimpleNote"
+        mc:Ignorable="d"
+        Height="800" Width="1200" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" 
+        Background="#FF393939" FontFamily="{DynamicResource Kode}" MouseDown="SignUp_MouseDown">
+
+    <!--Корректное сворачивание окна-->
+    <WindowChrome.WindowChrome>
+        <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0"
+                      UseAeroCaptionButtons="False" ResizeBorderThickness="7"/>
+    </WindowChrome.WindowChrome>
+    
+    <!--Стили для полей ввода-->
+    <Window.Resources>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="Background" Value="#BBBBBB"/>
+        </Style>
+        <Style TargetType="{x:Type PasswordBox}">
+            <Setter Property="Background" Value="#BBBBBB"/>
+        </Style>
+    </Window.Resources>
+    
+    <!--Основной контент-->
+    <Grid>
+        <!--Инициализация столбцов и строк Grid-->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="320"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <!--Блок закрытия и сворачивания приложения-->
+        <StackPanel Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,0,0" Orientation="Horizontal" 
+            Background="#FF252525" Width="131" Height="41">
+
+            <Button x:Name="Minimize" Content="-" Foreground="White" Width="30" Style="{DynamicResource CloseMinimizeButtonsHover}"
+                Height="30" FontSize="20" Margin="30,0,10,0" HorizontalContentAlignment="Center" HorizontalAlignment="Center" 
+                VerticalAlignment="Center" BorderBrush="White" Cursor="Hand" Click="Minimize_Click">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="2"/>
+                        <Setter Property="BorderBrush" Value="White"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+
+            <Button x:Name="Close" Content="X" Foreground="White" Width="30" Style="{DynamicResource CloseMinimizeButtonsHover}"
+                Height="30" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand" Click="Close_Click">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="2"/>
+                        <Setter Property="BorderBrush" Value="White"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+
+        <!--Приветственный баннер "WELCOME!"-->
+        <StackPanel Grid.Column="0" Grid.Row="1"  Margin="40,0,0,0" VerticalAlignment="Center" Orientation="Horizontal">
+            <TextBlock FontSize="100" 
+                VerticalAlignment="Center" Foreground="White" 
+                Text="WELCO" HorizontalAlignment="Left"/>
+            <TextBlock FontSize="100" 
+                VerticalAlignment="Center" Foreground="#FFCF6E00" 
+                Text="ME!" HorizontalAlignment="Left"/>
+        </StackPanel>
+
+        <!--Блок регистрации-->
+        <StackPanel Grid.Column="1" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <!--Надпись "Register"-->
+                <TextBlock FontSize="50" Foreground="White" Text="Sign " 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom" Margin="0 0 0 10"/>
+                <TextBlock FontSize="50" Foreground="#FFCF6E00" Text="Up" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom" Margin="0 0 0 10"/>
+            </StackPanel>
+
+
+            <!--TextBox'ы для ввода данных-->
+            <TextBox x:Name="Username" Width="505" Height="55" FontSize="25" 
+                TextAlignment="Center" VerticalContentAlignment="Center" MaxLength="15" Margin="0,7,0,0" Foreground="#FF7F7F7F" 
+                Text="Username" GotFocus="Username_GotFocus">
+                <TextBox.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="10 10 0 0"/>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+
+            <TextBox x:Name="Email" Width="505" Height="55" FontSize="25" 
+                TextAlignment="Center" VerticalContentAlignment="Center" MaxLength="50" Margin="0,7,0,0" Foreground="#FF7F7F7F" 
+                Text="E-mail" GotFocus="Email_GotFocus"/>
+
+            <!--Поля для ввода и подтверждения пароля-->
+            <PasswordBox x:Name="Password" Width="505" Height="55" FontSize="25"
+                VerticalAlignment="Center" HorizontalAlignment="Center" HorizontalContentAlignment="Center" 
+                VerticalContentAlignment="Center" Margin="0,7,0,0" MaxLength="15" Password="password" PasswordChar="*"
+                Foreground="#FF7F7F7F" GotFocus="Password_GotFocus"/>
+
+            <PasswordBox x:Name="ConfirmPassword" Width="505" Height="55"
+                FontSize="25" VerticalAlignment="Center" HorizontalAlignment="Center" HorizontalContentAlignment="Center" 
+                VerticalContentAlignment="Center" MaxLength="15" Margin="0,7,0,0" Password="password" PasswordChar="*"
+                Foreground="#FF7F7F7F" GotFocus="ConfirmPassword_GotFocus"/>
+
+            <!--Кнопка регистрации-->
+            <Button Name="Register" Width="505" Height="55" FontSize="28" Foreground="White"
+                Style="{DynamicResource RegLoginButtonsHover}"
+                Content="Sign Up" Margin="0,7,0,0" Click="Register_Click" Background="#FFCF6E00">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="0 0 10 10"></Setter>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            
+            <!--Гиперссылка, вопрос "don't have an account?"-->
+            <TextBlock Grid.Row="2" Grid.Column="1" x:Name="donthaveacc" FontFamily="{StaticResource Kode}"
+                HorizontalAlignment="Center" FontSize="14" VerticalAlignment="Top" Margin="0,10,0,0">
+                <Hyperlink x:Name="HaveAnAcc" Foreground="White" Click="HaveAnAcc_Click">
+                    already have an account?
+                </Hyperlink>
+            </TextBlock>
+
+        </StackPanel>
+
+    </Grid>
+</Window>

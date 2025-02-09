@@ -1,0 +1,45 @@
+﻿<Page x:Class="SimpleNote.PianoRoll"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:SimpleNote"
+      mc:Ignorable="d" Background="#FF333333"
+      d:DesignHeight="800" d:DesignWidth="1200" FontFamily="{DynamicResource Kode-Regular}"
+      Title="PianoRoll">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Для TaktNumbersPanel -->
+            <RowDefinition/>
+            <!-- Для основной области -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Панель с нотами слева -->
+        <ScrollViewer x:Name="LeftScrollViewer" Grid.Column="0" Grid.Row="1" VerticalScrollBarVisibility="Hidden"
+                      HorizontalScrollBarVisibility="Disabled" ScrollChanged="LeftScrollViewer_ScrollChanged"
+                      Background="White">
+            <StackPanel x:Name="PianoKeysPanel" Width="50" Background="#333333" Height="1220" Margin="0 0 0 0"/>
+        </ScrollViewer>
+
+        <!-- Панель с номерами тактов (фиксируем ее в верхней части) -->
+        <StackPanel x:Name="TaktNumbersPanel" Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Height="30"
+                    Background="#FF333333" PreviewMouseWheel="TaktNumbersPanel_PreviewMouseWheel"
+                    >
+            <!-- Номера тактов будут добавлены здесь -->
+        </StackPanel>
+
+        <!-- Основная область Piano Roll -->
+        <ScrollViewer x:Name="MainScrollViewer" Grid.Column="1" Grid.Row="1" VerticalScrollBarVisibility="Hidden"
+                      HorizontalScrollBarVisibility="Auto" ScrollChanged="MainScrollViewer_ScrollChanged"
+                      >
+            <Canvas x:Name="PianoRollCanvas" Background="#222222" Height="1220" Margin="0 0 0 0" Width="20000">
+                <!-- Разлиновка по тактам и клавишам -->
+            </Canvas>
+        </ScrollViewer>
+    </Grid>
+</Page>

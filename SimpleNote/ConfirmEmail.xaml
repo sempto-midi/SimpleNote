@@ -1,0 +1,128 @@
+﻿<Window x:Name="ConfirmEmail1" x:Class="SimpleNote.ConfirmEmail"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SimpleNote"
+        mc:Ignorable="d"
+        Title="SimpleNote" Height="800" Width="1200" Background="#FF393939" 
+        ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" FontFamily="{DynamicResource Kode}"
+        MouseDown="ConfirmEmail1_MouseDown">
+
+    <!--Корректное сворачивание окна-->
+    <WindowChrome.WindowChrome>
+        <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0"
+                      UseAeroCaptionButtons="False" ResizeBorderThickness="7"/>
+    </WindowChrome.WindowChrome>
+
+    <!--Основной контент-->
+    <StackPanel HorizontalAlignment="Center" Width="1200">
+
+        <!--Блок закрытия и сворачивания приложения-->
+        <StackPanel Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,0,0" Orientation="Horizontal" 
+            Background="#FF252525" Width="131" Height="41">
+
+            <Button x:Name="Minimize" Content="-" Foreground="White" Width="30" Style="{DynamicResource CloseMinimizeButtonsHover}"
+                Height="30" FontSize="20" Margin="30,0,10,0" HorizontalContentAlignment="Center" HorizontalAlignment="Center" 
+                VerticalAlignment="Center" BorderBrush="White" Cursor="Hand" Click="Minimize_Click">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="2"/>
+                        <Setter Property="BorderBrush" Value="White"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+
+            <Button x:Name="Close" Content="X" Foreground="White" Width="30" Style="{DynamicResource CloseMinimizeButtonsHover}"
+                Height="30" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand" Click="Close_Click">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="2"/>
+                        <Setter Property="BorderBrush" Value="White"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+
+        <!--Надписи-->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,100,0,0">
+            <TextBlock FontSize="70" Foreground="White" Text="Confirm your "/>
+            <TextBlock FontSize="70" Foreground="#FFCF6E00" Text="E-mail" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Bottom" Margin="0 0 0 10"/>
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock FontSize="20" Foreground="#FF8C8C8C" 
+                Text="your acc has been successfully registered." HorizontalAlignment="Center"/>
+            <TextBlock FontSize="20" Foreground="#FF8C8C8C" 
+                Text="to complete the process check your inbox for confirmation code" HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!--TextBox'ы для ввода кода-->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,50,0,0">
+            <TextBox x:Name="FirstSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent"
+                Foreground="White" FontSize="35" 
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
+                TextChanged="FirstSymb_TextChanged" GotFocus="FirstSymb_GotFocus">
+                <TextBox.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="10"></Setter>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+            <TextBox x:Name="SecondSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0"
+                Foreground="White" FontSize="35" 
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
+                TextChanged="SecondSymb_TextChanged" GotFocus="SecondSymb_GotFocus">
+                <TextBox.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="10"></Setter>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+            <TextBox x:Name="ThirdSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0" 
+                Foreground="White" FontSize="35" 
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
+                TextChanged="ThirdSymb_TextChanged" GotFocus="ThirdSymb_GotFocus">
+                <TextBox.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="10"></Setter>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+            <TextBox x:Name="FourthSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0" 
+                Foreground="White" FontSize="35" 
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
+                TextChanged="FourthSymb_TextChanged" GotFocus="FourthSymb_GotFocus">
+                <TextBox.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="10"></Setter>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+            <TextBox x:Name="FifthSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0" 
+                Foreground="White" FontSize="35" 
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
+                GotFocus="FifthSymb_GotFocus">
+                <TextBox.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="10"></Setter>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+        </StackPanel>
+
+        <!--Кнопка подтверждения-->
+        <Button Name="Confirm" Width="505" Height="55" Style="{DynamicResource RegLoginButtonsHover}" FontSize="28" Foreground="White"
+            Content="confirm" Margin="0,50,0,0" Click="Confirm_Click">
+            <Button.Resources>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="CornerRadius" Value="10"></Setter>
+                </Style>
+            </Button.Resources>
+        </Button>
+
+    </StackPanel>
+</Window>
