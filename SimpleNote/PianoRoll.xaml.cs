@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using NAudio.Midi;
@@ -20,9 +22,10 @@ namespace SimpleNote
 
         private List<string> noteNames = new List<string> { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         private Dictionary<int, Button> keyButtons = new Dictionary<int, Button>(); // Словарь для хранения клавиш
+        private Dictionary<int, SignalGenerator> activeNotes = new Dictionary<int, SignalGenerator>(); // Словарь для отслеживания активных нот
+
         private MidiIn midiIn; // MIDI-устройство
         private WaveOutEvent waveOut; // Для воспроизведения звука
-        private SignalGenerator signalGenerator; // Генератор звука
 
         public PianoRoll()
         {
@@ -59,29 +62,23 @@ namespace SimpleNote
                     Background = noteName.Contains("#") ? Brushes.Black : Brushes.White,
                     Foreground = noteName.Contains("#") ? Brushes.White : Brushes.Black,
                     HorizontalContentAlignment = HorizontalAlignment.Center,
-                    VerticalContentAlignment = VerticalAlignment.Center
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    Tag = 60 + i // Присваиваем тег с MIDI-нотой
                 };
 
-                // Обработка нажатия на клавишу
-                int midiNote = 60 + i; // MIDI-нота (C3 = 60)
-                keyButton.Click += (sender, e) => PlayNote(midiNote);
+                // Обработка нажатия мыши
+                keyButton.PreviewMouseDown += Button_MouseDown;
+                keyButton.PreviewMouseUp += Button_MouseUp;
 
                 // Добавление кнопки в панель
                 PianoKeysPanel.Children.Add(keyButton);
-                keyButtons[midiNote] = keyButton; // Сохраняем кнопку в словаре
+                keyButtons[60 + i] = keyButton; // Сохраняем кнопку в словаре
             }
         }
 
         private void InitializeAudio()
         {
             waveOut = new WaveOutEvent();
-            signalGenerator = new SignalGenerator()
-            {
-                Type = SignalGeneratorType.Pink, // Тип звука (синусоида)
-                Gain = 0.2, // Громкость
-                Frequency = 440 // Частота (A4)
-            };
-            waveOut.Init(signalGenerator);
         }
 
         private void InitializeMidi()
@@ -107,36 +104,96 @@ namespace SimpleNote
 
                 // Воспроизведение ноты
                 Dispatcher.Invoke(() => PlayNote(midiNote));
-
-                // Подсветка клавиши
-                Dispatcher.Invoke(() => HighlightKey(midiNote, true));
             }
             else if (e.MidiEvent.CommandCode == MidiCommandCode.NoteOff)
             {
                 var noteEvent = (NoteEvent)e.MidiEvent;
                 int midiNote = noteEvent.NoteNumber;
 
-                // Снятие подсветки клавиши
-                Dispatcher.Invoke(() => HighlightKey(midiNote, false));
+                // Остановка ноты
+                Dispatcher.Invoke(() => StopNote(midiNote));
             }
         }
 
         private void PlayNote(int midiNote)
         {
-            // Установка частоты для генератора звука
-            signalGenerator.Frequency = MidiNoteToFrequency(midiNote);
-
-            // Воспроизведение звука
-            if (waveOut.PlaybackState != PlaybackState.Playing)
+            if (!activeNotes.ContainsKey(midiNote))
             {
-                waveOut.Play();
+                // Создаем новый генератор звука для этой ноты
+                SignalGenerator signalGenerator = new SignalGenerator
+                {
+                    Type = SignalGeneratorType.Sin,
+                    Gain = 0.2,
+                    Frequency = MidiNoteToFrequency(midiNote)
+                };
+
+                // Добавляем генератор в словарь активных нот
+                activeNotes[midiNote] = signalGenerator;
+
+                // Если это первая нота или есть изменения в сигналах, обновляем вывод
+                UpdateAudioOutput();
+
+                // Подсветка клавиши
+                HighlightKey(midiNote, true);
+            }
+        }
+
+        private void StopNote(int midiNote)
+        {
+            if (activeNotes.ContainsKey(midiNote))
+            {
+                // Удаляем генератор звука из словаря активных нот
+                activeNotes.Remove(midiNote);
+
+                // Если больше нет активных нот, останавливаем воспроизведение
+                if (activeNotes.Count == 0)
+                {
+                    waveOut.Stop();
+                }
+                else
+                {
+                    // Обновляем вывод при наличии других активных нот
+                    UpdateAudioOutput();
+                }
+
+                // Снятие подсветки клавиши
+                HighlightKey(midiNote, false);
+            }
+        }
+
+        private void UpdateAudioOutput()
+        {
+            if (waveOut != null && waveOut.PlaybackState == PlaybackState.Playing)
+            {
+                waveOut.Stop(); // Останавливаем текущее воспроизведение
             }
 
-            // Подсветка клавиши
-            HighlightKey(midiNote, true);
+            var mixedSignal = MixMultipleSignals();
 
-            // Снятие подсветки через 500 мс
-            Task.Delay(500).ContinueWith(_ => Dispatcher.Invoke(() => HighlightKey(midiNote, false)));
+            if (mixedSignal != null)
+            {
+                waveOut.Init(mixedSignal); // Инициализируем новый смешанный сигнал
+                waveOut.Play(); // Начинаем воспроизведение
+            }
+        }
+
+        private ISampleProvider MixMultipleSignals()
+        {
+            if (activeNotes.Count == 0) return null;
+
+            // Создаем список всех активных генераторов звука
+            var generators = activeNotes.Values.ToList();
+
+            // Используем MixingSampleProvider для смешивания всех сигналов
+            var mixingProvider = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(44100, 2));
+            mixingProvider.ReadFully = true;
+
+            foreach (var generator in generators)
+            {
+                mixingProvider.AddMixerInput(generator);
+            }
+
+            return mixingProvider;
         }
 
         private void HighlightKey(int midiNote, bool highlight)
@@ -199,8 +256,23 @@ namespace SimpleNote
                     Foreground = (i % 4 == 0) ? Brushes.Orange : Brushes.LightGray, // Оранжевый для каждого 4-го такта
                     FontSize = (i % 4 == 0) ? 14 : 12 // Увеличенный шрифт для каждого 4-го такта
                 };
-
                 TaktNumbersPanel.Children.Add(taktNumber);
+            }
+        }
+
+        private void Button_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Button button && int.TryParse(button.Tag?.ToString(), out int midiNote))
+            {
+                PlayNote(midiNote);
+            }
+        }
+
+        private void Button_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Button button && int.TryParse(button.Tag?.ToString(), out int midiNote))
+            {
+                StopNote(midiNote);
             }
         }
 
@@ -220,16 +292,107 @@ namespace SimpleNote
             }
         }
 
-        private void TaktNumbersPanel_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        private void TaktNumbersPanel_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             // Отменяем стандартное поведение прокрутки
             e.Handled = true;
-
             // Определяем направление прокрутки
             double delta = e.Delta > 0 ? -30 : 30; // Изменение на 30 пикселей
-
             // Меняем горизонтальное смещение MainScrollViewer
             MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.HorizontalOffset - delta);
         }
+
+        private bool isDrawing = false; // Флаг, указывающий, что пользователь рисует прямоугольник
+        private Rectangle currentRectangle = null; // Текущий рисуемый прямоугольник
+        private int currentRectStartX = 0; // Начальная X-координата прямоугольника
+        private int currentRectStartY = 0; // Начальная Y-координата прямоугольника
+        private int currentKeyIndex = 0; // Индекс начальной клавиши
+        private int currentTaktIndex = 0; // Индекс начального такта
+        private List<Rectangle> createdRectangles = new List<Rectangle>(); // Список созданных прямоугольников
+
+        private void PianoRollCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Определяем начальную точку прямоугольника
+            var position = e.GetPosition(PianoRollCanvas);
+
+            int startKeyIndex = (int)(position.Y / KeyHeight); // Индекс клавиши
+            int startTaktIndex = (int)(position.X / 100); // Индекс такта
+
+            if (startKeyIndex >= 0 && startKeyIndex < TotalKeys && startTaktIndex >= 0 && startTaktIndex < TotalTakts)
+            {
+                // Сохраняем начальные координаты
+                currentRectStartX = startTaktIndex * 100;
+                currentRectStartY = startKeyIndex * KeyHeight;
+
+                // Создаем новый прямоугольник
+                currentRectangle = new Rectangle
+                {
+                    Stroke = Brushes.Green,
+                    Fill = new SolidColorBrush(Color.FromArgb(128, 0, 255, 0)), // Полупрозрачный зеленый цвет
+                    StrokeThickness = 1
+                };
+
+                // Добавляем его на Canvas
+                PianoRollCanvas.Children.Add(currentRectangle);
+
+                // Устанавливаем начальные координаты
+                Canvas.SetLeft(currentRectangle, currentRectStartX);
+                Canvas.SetTop(currentRectangle, currentRectStartY);
+
+                // Отслеживаем движение мыши
+                isDrawing = true;
+            }
+        }
+
+        private void PianoRollCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDrawing)
+            {
+                // Определяем текущую позицию мыши
+                var position = e.GetPosition(PianoRollCanvas);
+
+                int endKeyIndex = (int)(position.Y / KeyHeight); // Индекс клавиши
+                int endTaktIndex = (int)(position.X / 100); // Индекс такта
+
+                if (endKeyIndex >= 0 && endKeyIndex < TotalKeys && endTaktIndex >= 0 && endTaktIndex < TotalTakts)
+                {
+                    // Вычисляем размер прямоугольника
+                    int width = Math.Max(100, (endTaktIndex - currentTaktIndex + 1) * 100);
+                    int height = Math.Max(KeyHeight, Math.Abs((endKeyIndex - currentKeyIndex + 1) * KeyHeight));
+
+                    // Обновляем размеры прямоугольника
+                    currentRectangle.Width = width;
+                    currentRectangle.Height = height;
+
+                    // Если конечная клавиша выше начальной, меняем положение
+                    if (endKeyIndex < currentKeyIndex)
+                    {
+                        Canvas.SetTop(currentRectangle, endKeyIndex * KeyHeight);
+                    }
+
+                    // Если конечный такт слева от начального, меняем положение
+                    if (endTaktIndex < currentTaktIndex)
+                    {
+                        Canvas.SetLeft(currentRectangle, endTaktIndex * 100);
+                    }
+                }
+            }
+        }
+
+        private void PianoRollCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isDrawing)
+            {
+                // Завершаем рисование
+                isDrawing = false;
+
+                // Сохраняем созданный прямоугольник
+                createdRectangles.Add(currentRectangle);
+
+                // Сбрасываем текущий прямоугольник
+                currentRectangle = null;
+            }
+        }
+
     }
 }

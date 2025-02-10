@@ -37,7 +37,10 @@
         <ScrollViewer x:Name="MainScrollViewer" Grid.Column="1" Grid.Row="1" VerticalScrollBarVisibility="Hidden"
                       HorizontalScrollBarVisibility="Auto" ScrollChanged="MainScrollViewer_ScrollChanged"
                       >
-            <Canvas x:Name="PianoRollCanvas" Background="#222222" Height="1220" Margin="0 0 0 0" Width="20000">
+            <Canvas x:Name="PianoRollCanvas" Background="#222222" Height="1220" Margin="0 0 0 0" Width="20000"
+                    MouseLeftButtonDown="PianoRollCanvas_MouseLeftButtonDown"
+                    MouseMove="PianoRollCanvas_MouseMove"
+                    MouseLeftButtonUp="PianoRollCanvas_MouseLeftButtonUp">
                 <!-- Разлиновка по тактам и клавишам -->
             </Canvas>
         </ScrollViewer>
