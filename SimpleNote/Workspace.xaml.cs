@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace SimpleNote
 {
@@ -25,7 +27,7 @@ namespace SimpleNote
         public Workspace()
         {
             InitializeComponent();
-            Tempo.Text = _currentValue.ToString();
+            Tempo.Text = "120";
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -143,9 +145,52 @@ namespace SimpleNote
             Tempo.Text = _currentValue.ToString();
         }
 
+        private void Tempo_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (int.TryParse(Tempo.Text, out int newTempo))
+            {
+                // Обновляем BPM в PianoRoll, если он существует
+                _pianoRollPage?.SetTempo(newTempo);
+            }
+        }
+
+        public void UpdateTime(string timeString)
+        {
+            if (TimerTextBox != null)
+            {
+                TimerTextBox.Text = timeString;
+            }
+        }
+
+        private PianoRoll _pianoRollPage; // Ссылка на страницу PianoRoll
+
         private void PianoRoll_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new Uri("PianoRoll.xaml", UriKind.Relative));
+            // Создаем экземпляр PianoRoll и сохраняем ссылку
+            _pianoRollPage = new PianoRoll();
+            MainFrame.Navigate(_pianoRollPage);
+
+            // Передаем текущий темп на страницу PianoRoll
+            if (_pianoRollPage != null && int.TryParse(Tempo.Text, out int currentTempo))
+            {
+                _pianoRollPage.SetTempo(currentTempo);
+            }
+        }
+
+        private void Play_Click(object sender, RoutedEventArgs e)
+        {
+            // Вызываем метод StartPlayback() на странице PianoRoll
+            _pianoRollPage?.StartPlayback();
+        }
+
+        private void Pause_Click(object sender, RoutedEventArgs e)
+        {
+            _pianoRollPage?.PausePlayback();
+        }
+
+        private void Stop_Click(object sender, RoutedEventArgs e)
+        {
+            _pianoRollPage?.StopPlayback();
         }
 
         private void Reload_Click(object sender, RoutedEventArgs e)
@@ -153,9 +198,5 @@ namespace SimpleNote
             MainFrame.Navigate(new Uri("Reload.xaml", UriKind.Relative));
 
         }
-        //private void OpenPlaylist_Click(object sender, RoutedEventArgs e)
-        //{
-        //    MainFrame.Navigate(new Uri("Playlist.xaml", UriKind.Relative));
-        //}
     }
 }

@@ -26,23 +26,24 @@
             <StackPanel x:Name="PianoKeysPanel" Width="50" Background="#333333" Height="1220" Margin="0 0 0 0"/>
         </ScrollViewer>
 
-        <!-- Панель с номерами тактов (фиксируем ее в верхней части) -->
-        <StackPanel x:Name="TaktNumbersPanel" Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Height="30"
-                    Background="#FF333333" PreviewMouseWheel="TaktNumbersPanel_PreviewMouseWheel"
-                    >
-            <!-- Номера тактов будут добавлены здесь -->
-        </StackPanel>
+        <!-- Панель с номерами тактов -->
+        <ScrollViewer x:Name="TaktNumbersScrollViewer" Grid.Column="1" Grid.Row="0" HorizontalScrollBarVisibility="Hidden"
+                      VerticalScrollBarVisibility="Disabled" ScrollChanged="TaktNumbersScrollViewer_ScrollChanged">
+            <StackPanel x:Name="TaktNumbersPanel" Orientation="Horizontal" Height="30" Background="#FF333333">
+                <!-- Номера тактов будут добавлены здесь -->
+            </StackPanel>
+        </ScrollViewer>
 
         <!-- Основная область Piano Roll -->
         <ScrollViewer x:Name="MainScrollViewer" Grid.Column="1" Grid.Row="1" VerticalScrollBarVisibility="Hidden"
-                      HorizontalScrollBarVisibility="Auto" ScrollChanged="MainScrollViewer_ScrollChanged"
-                      >
-            <Canvas x:Name="PianoRollCanvas" Background="#222222" Height="1220" Margin="0 0 0 0" Width="20000"
+                      HorizontalScrollBarVisibility="Auto" ScrollChanged="MainScrollViewer_ScrollChanged">
+            <Canvas x:Name="PianoRollCanvas" Background="#222222" Height="1220" Width="20000"
                     MouseLeftButtonDown="PianoRollCanvas_MouseLeftButtonDown"
                     MouseMove="PianoRollCanvas_MouseMove"
                     MouseLeftButtonUp="PianoRollCanvas_MouseLeftButtonUp">
                 <!-- Разлиновка по тактам и клавишам -->
             </Canvas>
+            
         </ScrollViewer>
     </Grid>
 </Page>
