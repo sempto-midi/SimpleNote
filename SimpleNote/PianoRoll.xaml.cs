@@ -24,7 +24,7 @@ namespace SimpleNote
         private Line playheadMarker; // Маркер воспроизведения
         private double currentPosition = 0; // Текущая позиция маркера
         private DispatcherTimer playbackTimer; // Таймер для движения маркера
-        private bool isPlaying = false; // Флаг воспроизведения
+        public bool isPlaying = false; // Флаг воспроизведения
         private int tempo = 120; // Темп в BPM
         private double secondsPerBeat; // Секунд на удар
         private double pixelsPerSecond; // Пикселей в секунду

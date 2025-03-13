@@ -206,7 +206,7 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
 
-                <Button x:Name="Playlist" Grid.Row="0" Height="50" Click="Reload_Click" 
+                <Button x:Name="Playlist" Grid.Row="0" Height="50" Click="Playlist_Click" 
                     Foreground="White" Background="#FF292929" Width="70" BorderBrush="Transparent" Cursor="Hand">
                     <Image Source="pics/Playlist_Button.png" Width="30"/>
                     <Button.Resources>

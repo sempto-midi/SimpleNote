@@ -193,10 +193,20 @@ namespace SimpleNote
             _pianoRollPage?.StopPlayback();
         }
 
-        private void Reload_Click(object sender, RoutedEventArgs e)
+        private Playlist _playlistPage;
+        private void Playlist_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new Uri("Reload.xaml", UriKind.Relative));
-
+            if(_pianoRollPage.isPlaying == true)
+            {
+                _pianoRollPage.StopPlayback();
+                _playlistPage = new Playlist();
+                MainFrame.Navigate(_playlistPage);
+            }
+            else
+            {
+                _playlistPage = new Playlist();
+                MainFrame.Navigate(_playlistPage);
+            }
         }
     }
 }
