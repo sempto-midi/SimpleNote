@@ -24,6 +24,14 @@ namespace SimpleNote
     {
         private bool _isFullscreen = false;
 
+        private bool _isDragging = false; // Флаг для отслеживания зажатия ЛКМ
+        private Point _startPoint;       // Начальная позиция курсора
+        private int _currentValue = 120;   // Текущее числовое значение
+
+        private PianoRoll _pianoRollPage; // Ссылка на страницу PianoRoll
+
+        private Playlist _playlistPage;
+
         public Workspace()
         {
             InitializeComponent();
@@ -88,10 +96,6 @@ namespace SimpleNote
 
             }
         }
-
-        private bool _isDragging = false; // Флаг для отслеживания зажатия ЛКМ
-        private Point _startPoint;       // Начальная позиция курсора
-        private int _currentValue = 120;   // Текущее числовое значение
 
         //Обработка нажатия ЛКМ
         private void Tempo_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -162,8 +166,6 @@ namespace SimpleNote
             }
         }
 
-        private PianoRoll _pianoRollPage; // Ссылка на страницу PianoRoll
-
         private void PianoRoll_Click(object sender, RoutedEventArgs e)
         {
             // Создаем экземпляр PianoRoll и сохраняем ссылку
@@ -193,7 +195,6 @@ namespace SimpleNote
             _pianoRollPage?.StopPlayback();
         }
 
-        private Playlist _playlistPage;
         private void Playlist_Click(object sender, RoutedEventArgs e)
         {
             if(_pianoRollPage.isPlaying == true)
@@ -206,6 +207,36 @@ namespace SimpleNote
             {
                 _playlistPage = new Playlist();
                 MainFrame.Navigate(_playlistPage);
+            }
+        }
+
+        private void ExportToMidi_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "MIDI Files (*.mid)|*.mid",
+                DefaultExt = ".mid"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                _pianoRollPage?.ExportToMidi(saveFileDialog.FileName);
+                MessageBox.Show("MIDI file exported successfully!");
+            }
+        }
+
+        private void ExportToMp3_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "MP3 Files (*.mp3)|*.mp3",
+                DefaultExt = ".mp3"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                _pianoRollPage?.ExportToMp3(saveFileDialog.FileName);
+                MessageBox.Show("MP3 file exported successfully!");
             }
         }
     }
