@@ -84,7 +84,7 @@
         </StackPanel>
 
         <!--Меню-->
-        <Menu Grid.Row="0" Background="#FF252525" Foreground="White">
+        <Menu Grid.Row="0" Background="{x:Null}" Foreground="White" Height="20" VerticalAlignment="Top" FontFamily="Kode Mono SemiBold">
             <MenuItem Header="File">
                 <MenuItem Header="Export to MIDI" Click="ExportToMidi_Click"/>
                 <MenuItem Header="Export to MP3" Click="ExportToMp3_Click"/>
