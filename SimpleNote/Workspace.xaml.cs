@@ -1,110 +1,69 @@
-﻿using NAudio.CoreAudioApi;
-using NAudio.Midi;
-using NAudio.Mixer;
-using NAudio.Vst;
+﻿using System.Windows;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms;
+using SimpleNote.Audio;
+using SimpleNote.Pages;
 
-public partial class Workspace : Window
+namespace SimpleNote
 {
-    private List<VstPluginContext> _plugins = new List<VstPluginContext>();
-    private WaveOutEvent _outputDevice;
-    private MixingSampleProvider _mixer;
-    private Metronome _metronome;
-    private Dictionary<int, AudioChannel> _audioChannels = new Dictionary<int, AudioChannel>();
-
-    public Workspace()
+    public partial class Workspace : Window
     {
-        InitializeComponent();
-        InitializeAudioEngine();
-        InitializeMetronome();
-        Loaded += Workspace_Loaded;
-    }
+        private readonly AudioEngine _audioEngine;
+        private Metronome _metronome;
 
-    private void Workspace_Loaded(object sender, RoutedEventArgs e)
-    {
-        CreateDefaultChannels(8); // Создаем 8 каналов по умолчанию
-    }
-
-    private void InitializeAudioEngine()
-    {
-        _outputDevice = new WaveOutEvent();
-        _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(44100, 2))
+        public Workspace()
         {
-            ReadFully = true
-        };
-        _outputDevice.Init(_mixer);
-        _outputDevice.Play();
-    }
+            InitializeComponent();
+            _audioEngine = new AudioEngine();
+            _metronome = new Metronome(int.Parse(Tempo.Text));
 
-    private void InitializeMetronome()
-    {
-        _metronome = new Metronome(120); // Стандартный BPM
-        _mixer.AddMixerInput(_metronome.GetAudioProvider());
-    }
-
-    private void CreateDefaultChannels(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            AddChannel($"Channel {i + 1}");
+            // Инициализация интерфейса
+            InitializeMixerChannels(8);
+            LoadPianoRoll();
         }
-    }
 
-    private void AddChannel(string name)
-    {
-        int channelId = _audioChannels.Count + 1;
-
-        // Добавляем в Channel Rack
-        var channelControl = new ChannelControl(channelId, this);
-        ChannelRackPanel.Children.Add(channelControl);
-
-        // Добавляем в Mixer
-        var mixerControl = new MixerControl(channelId);
-        MixerPanel.Children.Add(mixerControl);
-
-        // Создаем аудиоканал
-        var audioChannel = new AudioChannel();
-        _audioChannels.Add(channelId, audioChannel);
-        _mixer.AddMixerInput(audioChannel.GetAudioProvider());
-    }
-
-    // Метод для изменения BPM
-    public void SetBpm(int bpm)
-    {
-        _metronome.SetTempo(bpm);
-        Tempo.Text = bpm.ToString();
-    }
-
-    // Метод для добавления VST плагина
-    public void AddPluginToChannel(int channelId, string pluginPath)
-    {
-        if (_audioChannels.TryGetValue(channelId, out var channel))
+        private void InitializeMixerChannels(int count)
         {
-            try
+            for (int i = 0; i < count; i++)
             {
-                var plugin = VstPluginContext.Create(pluginPath);
-                _plugins.Add(plugin);
-                channel.AddPlugin(plugin);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка загрузки плагина: {ex.Message}");
+                var channelControl = new MixerChannel(i + 1);
+                MixerPanel.Children.Add(channelControl);
             }
         }
-    }
 
-    // Метод для изменения громкости канала
-    public void SetChannelVolume(int channelId, float volume)
-    {
-        if (_audioChannels.TryGetValue(channelId, out var channel))
+        private void LoadPianoRoll()
         {
-            channel.SetVolume(volume);
+            MainFrame.Navigate(new PianoRollPage(_audioEngine, _metronome));
+        }
+
+        // Обработчики кнопок
+        private void Play_Click(object sender, RoutedEventArgs e)
+        {
+            _metronome.Start();
+            _audioEngine.Start();
+        }
+
+        private void Stop_Click(object sender, RoutedEventArgs e)
+        {
+            _metronome.Stop();
+            _audioEngine.Stop();
+            TimerDisplay.Text = "00:00:00";
+        }
+
+        private void PianoRoll_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new PianoRollPage(_audioEngine, _metronome));
+        }
+
+        private void Metronome_Click(object sender, RoutedEventArgs e)
+        {
+            _metronome.Toggle();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _audioEngine.Dispose();
+            _metronome.Dispose();
+            base.OnClosed(e);
         }
     }
 }
