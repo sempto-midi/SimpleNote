@@ -1,243 +1,110 @@
-﻿using System;
+﻿using NAudio.CoreAudioApi;
+using NAudio.Midi;
+using NAudio.Mixer;
+using NAudio.Vst;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Path = System.IO.Path;
+using System.Windows.Forms;
 
-namespace SimpleNote
+public partial class Workspace : Window
 {
-    /// <summary>
-    /// Логика взаимодействия для Workspace.xaml
-    /// </summary>
-    public partial class Workspace : Window
+    private List<VstPluginContext> _plugins = new List<VstPluginContext>();
+    private WaveOutEvent _outputDevice;
+    private MixingSampleProvider _mixer;
+    private Metronome _metronome;
+    private Dictionary<int, AudioChannel> _audioChannels = new Dictionary<int, AudioChannel>();
+
+    public Workspace()
     {
-        private bool _isFullscreen = false;
+        InitializeComponent();
+        InitializeAudioEngine();
+        InitializeMetronome();
+        Loaded += Workspace_Loaded;
+    }
 
-        private bool _isDragging = false; // Флаг для отслеживания зажатия ЛКМ
-        private Point _startPoint;       // Начальная позиция курсора
-        private int _currentValue = 120;   // Текущее числовое значение
+    private void Workspace_Loaded(object sender, RoutedEventArgs e)
+    {
+        CreateDefaultChannels(8); // Создаем 8 каналов по умолчанию
+    }
 
-        private PianoRoll _pianoRollPage; // Ссылка на страницу PianoRoll
-
-        private Playlist _playlistPage;
-
-        public Workspace()
+    private void InitializeAudioEngine()
+    {
+        _outputDevice = new WaveOutEvent();
+        _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(44100, 2))
         {
-            InitializeComponent();
-            Tempo.Text = "120";
+            ReadFully = true
+        };
+        _outputDevice.Init(_mixer);
+        _outputDevice.Play();
+    }
+
+    private void InitializeMetronome()
+    {
+        _metronome = new Metronome(120); // Стандартный BPM
+        _mixer.AddMixerInput(_metronome.GetAudioProvider());
+    }
+
+    private void CreateDefaultChannels(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            AddChannel($"Channel {i + 1}");
         }
+    }
 
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-                this.DragMove();
-        }
+    private void AddChannel(string name)
+    {
+        int channelId = _audioChannels.Count + 1;
 
-        private void Minimize_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
+        // Добавляем в Channel Rack
+        var channelControl = new ChannelControl(channelId, this);
+        ChannelRackPanel.Children.Add(channelControl);
 
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
+        // Добавляем в Mixer
+        var mixerControl = new MixerControl(channelId);
+        MixerPanel.Children.Add(mixerControl);
 
-        private void MinMax_Click(object sender, RoutedEventArgs e)
+        // Создаем аудиоканал
+        var audioChannel = new AudioChannel();
+        _audioChannels.Add(channelId, audioChannel);
+        _mixer.AddMixerInput(audioChannel.GetAudioProvider());
+    }
+
+    // Метод для изменения BPM
+    public void SetBpm(int bpm)
+    {
+        _metronome.SetTempo(bpm);
+        Tempo.Text = bpm.ToString();
+    }
+
+    // Метод для добавления VST плагина
+    public void AddPluginToChannel(int channelId, string pluginPath)
+    {
+        if (_audioChannels.TryGetValue(channelId, out var channel))
         {
-            if (_isFullscreen)
+            try
             {
-                // Возвращаем окно в нормальное состояние
-                this.WindowState = WindowState.Normal;
+                var plugin = VstPluginContext.Create(pluginPath);
+                _plugins.Add(plugin);
+                channel.AddPlugin(plugin);
             }
-            else
+            catch (Exception ex)
             {
-                // Переключаем окно в полноэкранный режим
-                this.WindowState = WindowState.Maximized;
-            }
-
-            // Инвертируем флаг
-            _isFullscreen = !_isFullscreen;
-        }
-
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if(!(WindowState.Equals(WindowState.Maximized)))
-            {
-                Rectangle rectangle = new Rectangle
-                {
-                    Width = 10,
-                    Height = 10,
-                    Fill = Brushes.Transparent,
-                    Stroke = Brushes.White,
-                    StrokeThickness = 1
-                };
-                MinMax.Content = rectangle;
-            }
-            else
-            {
-                MinMax.Content = new Image
-                {
-                    Width = 10,
-                    Height = 10,
-                    Source = new BitmapImage(new Uri("pics/MinWin.png", UriKind.Relative))
-                };
-
-            }
-        }
-
-        //Обработка нажатия ЛКМ
-        private void Tempo_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                _isDragging = true;
-                _startPoint = e.GetPosition(this); // Сохраняем начальную позицию курсора
-                Tempo.CaptureMouse();     // Захватываем мышь для отслеживания движения
+                MessageBox.Show($"Ошибка загрузки плагина: {ex.Message}");
             }
         }
+    }
 
-        private void Tempo_PreviewMouseMove(object sender, MouseEventArgs e)
+    // Метод для изменения громкости канала
+    public void SetChannelVolume(int channelId, float volume)
+    {
+        if (_audioChannels.TryGetValue(channelId, out var channel))
         {
-            if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
-            {
-                Point currentPoint = e.GetPosition(this); // Текущая позиция курсора
-                double deltaY = _startPoint.Y - currentPoint.Y; // Разница по оси Y
-
-                // Изменяем значение с шагом в 1
-                int deltaValue = (int)Math.Round(deltaY);
-                _currentValue += deltaValue;
-
-                _currentValue = Math.Max(30, Math.Min(300, _currentValue)); // Ограничение от 0 до 100
-
-                // Обновляем текстовое поле
-                Tempo.Text = _currentValue.ToString();
-
-                // Обновляем начальную точку для следующего шага
-                _startPoint = currentPoint;
-            }
-        }
-
-        private void Tempo_PreviewMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            if (_isDragging)
-            {
-                _isDragging = false;
-                Tempo.ReleaseMouseCapture(); // Освобождаем захват мыши
-            }
-        }
-
-        private void Tempo_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            // Увеличиваем или уменьшаем значение в зависимости от направления прокрутки
-            _currentValue += Math.Sign(e.Delta);
-
-            _currentValue = Math.Max(30, Math.Min(300, _currentValue)); // Ограничение от 0 до 100
-
-            // Обновляем текстовое поле
-            Tempo.Text = _currentValue.ToString();
-        }
-
-        private void Tempo_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (int.TryParse(Tempo.Text, out int newTempo))
-            {
-                // Обновляем BPM в PianoRoll, если он существует
-                _pianoRollPage?.SetTempo(newTempo);
-            }
-        }
-
-        public void UpdateTime(string timeString)
-        {
-            if (TimerTextBox != null)
-            {
-                TimerTextBox.Text = timeString;
-            }
-        }
-
-        private void PianoRoll_Click(object sender, RoutedEventArgs e)
-        {
-            // Создаем экземпляр PianoRoll и сохраняем ссылку
-            _pianoRollPage = new PianoRoll();
-            MainFrame.Navigate(_pianoRollPage);
-
-            // Передаем текущий темп на страницу PianoRoll
-            if (_pianoRollPage != null && int.TryParse(Tempo.Text, out int currentTempo))
-            {
-                _pianoRollPage.SetTempo(currentTempo);
-            }
-        }
-
-        private void Play_Click(object sender, RoutedEventArgs e)
-        {
-            // Вызываем метод StartPlayback() на странице PianoRoll
-            _pianoRollPage?.StartPlayback();
-        }
-
-        private void Pause_Click(object sender, RoutedEventArgs e)
-        {
-            _pianoRollPage?.PausePlayback();
-        }
-
-        private void Stop_Click(object sender, RoutedEventArgs e)
-        {
-            _pianoRollPage?.StopPlayback();
-        }
-
-        private void Playlist_Click(object sender, RoutedEventArgs e)
-        {
-            if(_pianoRollPage.isPlaying == true)
-            {
-                _pianoRollPage.StopPlayback();
-                _playlistPage = new Playlist();
-                MainFrame.Navigate(_playlistPage);
-            }
-            else
-            {
-                _playlistPage = new Playlist();
-                MainFrame.Navigate(_playlistPage);
-            }
-        }
-
-        private void ExportToMidi_Click(object sender, RoutedEventArgs e)
-        {
-            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "MIDI Files (*.mid)|*.mid",
-                DefaultExt = ".mid"
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                _pianoRollPage?.ExportToMidi(saveFileDialog.FileName);
-                MessageBox.Show("MIDI file exported successfully!");
-            }
-        }
-
-        private void ExportToMp3_Click(object sender, RoutedEventArgs e)
-        {
-            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "MP3 Files (*.mp3)|*.mp3",
-                DefaultExt = ".mp3"
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                _pianoRollPage?.ExportToMp3(saveFileDialog.FileName);
-                MessageBox.Show("MP3 file exported successfully!");
-            }
+            channel.SetVolume(volume);
         }
     }
 }
