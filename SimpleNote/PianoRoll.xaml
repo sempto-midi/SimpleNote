@@ -7,6 +7,36 @@
       mc:Ignorable="d" Background="#FF333333"
       d:DesignHeight="800" d:DesignWidth="1200" FontFamily="{DynamicResource Kode-Regular}"
       Title="PianoRoll">
+
+    <Page.Resources>
+        <!-- Стиль для горизонтального ScrollBar -->
+        <Style x:Key="HorizontalScrollBar" TargetType="{x:Type ScrollBar}">
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid>
+                            <Track x:Name="PART_Track">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border 
+                                                    CornerRadius="4" 
+                                                    Background="#888888"
+                                                    Margin="0,1"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -35,15 +65,51 @@
         </ScrollViewer>
 
         <!-- Основная область Piano Roll -->
-        <ScrollViewer x:Name="MainScrollViewer" Grid.Column="1" Grid.Row="1" VerticalScrollBarVisibility="Hidden"
-                      HorizontalScrollBarVisibility="Auto" ScrollChanged="MainScrollViewer_ScrollChanged">
+        <ScrollViewer x:Name="MainScrollViewer" Grid.Column="1" Grid.Row="1"
+              VerticalScrollBarVisibility="Hidden"
+              HorizontalScrollBarVisibility="Auto"
+              ScrollChanged="MainScrollViewer_ScrollChanged">
+
+            <!-- Ресурсы с определением стиля -->
+            <ScrollViewer.Resources>
+                <!-- Общий стиль для ScrollBar -->
+                <Style TargetType="{x:Type ScrollBar}">
+                    <Style.Triggers>
+                        <!-- Стиль только для горизонтального ScrollBar -->
+                        <Trigger Property="Orientation" Value="Horizontal">
+                            <Setter Property="Height" Value="10"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                        <Grid>
+                                            <Track x:Name="PART_Track">
+                                                <Track.Thumb>
+                                                    <Thumb>
+                                                        <Thumb.Template>
+                                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                                <Border CornerRadius="5" 
+                                                                Background="#666666"
+                                                                Margin="0,2,0,2"/>
+                                                            </ControlTemplate>
+                                                        </Thumb.Template>
+                                                    </Thumb>
+                                                </Track.Thumb>
+                                            </Track>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Resources>
+
             <Canvas x:Name="PianoRollCanvas" Background="#222222" Height="1220" Width="20000"
-                    MouseLeftButtonDown="PianoRollCanvas_MouseLeftButtonDown"
-                    MouseMove="PianoRollCanvas_MouseMove"
-                    MouseLeftButtonUp="PianoRollCanvas_MouseLeftButtonUp">
+            MouseLeftButtonDown="PianoRollCanvas_MouseLeftButtonDown"
+            MouseMove="PianoRollCanvas_MouseMove"
+            MouseLeftButtonUp="PianoRollCanvas_MouseLeftButtonUp">
                 <!-- Разлиновка по тактам и клавишам -->
             </Canvas>
-            
         </ScrollViewer>
     </Grid>
 </Page>

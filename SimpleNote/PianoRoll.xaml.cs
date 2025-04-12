@@ -106,33 +106,33 @@ namespace SimpleNote
         }
 
         private void TaktNumbersScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (e.HorizontalChange != 0)
         {
-            if (e.HorizontalChange != 0)
-            {
-                MainScrollViewer.ScrollToHorizontalOffset(TaktNumbersScrollViewer.HorizontalOffset);
-            }
+            MainScrollViewer.ScrollToHorizontalOffset(TaktNumbersScrollViewer.HorizontalOffset);
+        }
+    }
+
+    private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (e.HorizontalChange != 0)
+        {
+            TaktNumbersScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.HorizontalOffset);
         }
 
-        private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        if (e.VerticalChange != 0)
         {
-            if (e.HorizontalChange != 0)
-            {
-                TaktNumbersScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.HorizontalOffset);
-            }
-
-            if (e.VerticalChange != 0)
-            {
-                LeftScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset);
-            }
+            LeftScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset);
         }
+    }
 
-        private void LeftScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    private void LeftScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (e.VerticalChange != 0)
         {
-            if (e.VerticalChange != 0)
-            {
-                MainScrollViewer.ScrollToVerticalOffset(LeftScrollViewer.VerticalOffset);
-            }
+            MainScrollViewer.ScrollToVerticalOffset(LeftScrollViewer.VerticalOffset);
         }
+    }
 
         #region Playback Control
         public void SetTempo(int newTempo)
