@@ -1,40 +1,76 @@
-﻿using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
-using System.Windows.Threading;
+﻿using System;
+using System.Media;
+using System.Threading;
 
-namespace SimpleNote.Audio
+namespace SimpleNote
 {
-    public class Metronome
+    public class Metronome : IDisposable
     {
-        private readonly SignalGenerator _generator;
-        private readonly WaveOutEvent _output;
-        private readonly DispatcherTimer _timer;
+        private int _bpm;
+        private bool _isRunning;
+        private Timer _timer;
 
-        public Metronome(int bpm = 120)
+        public Metronome(int bpm)
         {
-            _generator = new SignalGenerator(44100, 2)
-            {
-                Type = SignalGeneratorType.Square,
-                Frequency = 1000,
-                Gain = 0.2
-            };
-
-            _output = new WaveOutEvent();
-            _output.Init(_generator.Take(TimeSpan.FromMilliseconds(50)));
-
-            _timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(60000.0 / bpm)
-            };
-            _timer.Tick += (s, e) => _output.Play();
+            _bpm = bpm;
         }
 
+        // Переключение состояния метронома (вкл/выкл)
+        public void Toggle()
+        {
+            if (_isRunning)
+            {
+                Stop();
+            }
+            else
+            {
+                Start();
+            }
+        }
+
+        public void Start()
+        {
+            if (_isRunning) return;
+
+            _isRunning = true;
+            int intervalMs = (int)(60000.0 / _bpm); // Интервал в миллисекундах
+            _timer = new Timer(Tick, null, 0, intervalMs);
+        }
+
+        public void Stop()
+        {
+            if (!_isRunning) return;
+
+            _isRunning = false;
+            _timer?.Dispose();
+            _timer = null;
+        }
+
+        private void Tick(object state)
+        {
+            Console.Beep(800, 50);
+        }
+
+        // Установка темпа (ударов в минуту)
         public void SetTempo(int bpm)
         {
-            _timer.Interval = TimeSpan.FromMilliseconds(60000.0 / bpm);
+            if (bpm < 20 || bpm > 300)
+                throw new ArgumentOutOfRangeException(nameof(bpm));
+
+            _bpm = bpm;
+
+            if (_isRunning)
+            {
+                Stop();
+                Start();
+            }
         }
 
-        public void Start() => _timer.Start();
-        public void Stop() => _timer.Stop();
+        // Освобождение ресурсов
+        public void Dispose()
+        {
+            Stop();
+            _timer?.Dispose();
+        }
     }
 }

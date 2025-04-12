@@ -1,28 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows.Controls;
 
-namespace SimpleNote.Controls
+namespace SimpleNote
 {
-    /// <summary>
-    /// Логика взаимодействия для MixerChannel.xaml
-    /// </summary>
     public partial class MixerChannel : UserControl
     {
-        public MixerChannel()
+        public int ChannelNumber { get; set; }
+
+        public MixerChannel(int channelNumber)
         {
             InitializeComponent();
+            ChannelNumber = channelNumber;
+            DataContext = this; // Для привязки ChannelNumber в XAML
         }
     }
 }

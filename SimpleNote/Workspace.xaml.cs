@@ -1,7 +1,7 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 using NAudio.Wave;
 using SimpleNote.Audio;
-using SimpleNote.Pages;
 
 namespace SimpleNote
 {
@@ -21,6 +21,22 @@ namespace SimpleNote
             LoadPianoRoll();
         }
 
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
         private void InitializeMixerChannels(int count)
         {
             for (int i = 0; i < count; i++)
@@ -30,9 +46,27 @@ namespace SimpleNote
             }
         }
 
+        private void Mixer_Click(object sender, RoutedEventArgs e)
+        {
+            // Показываем/скрываем панель микшера
+            MixerPanel.Visibility = MixerPanel.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+
+        //private void Plugins_Click(object sender, RoutedEventArgs e)
+        //{
+        //    Открываем меню или окно плагинов
+        //   var pluginsWindow = new PluginsWindow();
+        //    pluginsWindow.Owner = this;
+        //    pluginsWindow.ShowDialog();
+        //}
+
         private void LoadPianoRoll()
         {
-            MainFrame.Navigate(new PianoRollPage(_audioEngine, _metronome));
+            var pianoRoll = new PianoRoll(_audioEngine, _metronome);
+            pianoRoll.TimeUpdated += time => TimerDisplay.Text = time;
+            MainFrame.Navigate(pianoRoll);
         }
 
         // Обработчики кнопок
@@ -51,7 +85,7 @@ namespace SimpleNote
 
         private void PianoRoll_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new PianoRollPage(_audioEngine, _metronome));
+            MainFrame.Navigate(new PianoRoll(_audioEngine, _metronome));
         }
 
         private void Metronome_Click(object sender, RoutedEventArgs e)

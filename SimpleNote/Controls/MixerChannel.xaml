@@ -1,13 +1,17 @@
-﻿<UserControl x:Class="SimpleNote.Controls.MixerChannel"
+﻿<UserControl x:Class="SimpleNote.MixerChannel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Width="80" Height="100">
-    <Border Background="#FF444444" CornerRadius="3" Padding="5">
-        <StackPanel>
-            <TextBlock Text="{Binding ChannelName}" Foreground="White" HorizontalAlignment="Center"/>
-            <Slider Minimum="0" Maximum="1" Value="0.7" Orientation="Vertical" Height="60"
-                    ValueChanged="Volume_Changed"/>
-            <CheckBox Content="Mute" Foreground="White" Margin="0,5,0,0"/>
+             Width="120" Height="200">
+    <Border BorderBrush="#FF3E3E3E" BorderThickness="1" Background="#FF252525">
+        <StackPanel Margin="5">
+            <TextBlock Text="{Binding ChannelNumber}" 
+                      Foreground="White" 
+                      FontWeight="Bold"
+                      HorizontalAlignment="Center"/>
+            <Slider Minimum="0" Maximum="1" Value="0.8" Margin="0,10"
+                    Orientation="Vertical" Height="100" HorizontalContentAlignment="Center" HorizontalAlignment="Center"/>
+            <CheckBox Content="Mute" Foreground="LightGray" Margin="0,5" HorizontalAlignment="Center"/>
+            <Button Content="Solo" Margin="0,5" Padding="5,2"/>
         </StackPanel>
     </Border>
 </UserControl>
