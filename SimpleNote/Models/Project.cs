@@ -5,6 +5,7 @@
         public int ProjectId { get; set; }
         public int UserId { get; set; }
         public string ProjectName { get; set; }
+        public string FilePath { get; set; } // Новое свойство для хранения пути к файлу
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

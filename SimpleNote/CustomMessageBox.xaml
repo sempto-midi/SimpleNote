@@ -1,0 +1,50 @@
+﻿<Window x:Class="SimpleNote.CustomMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent" WindowStartupLocation="CenterOwner"
+        Width="400" Height="130"
+        Opacity="0" FontFamily="{DynamicResource Kode}">
+
+    <Window.Resources>
+        <Style x:Key="ButtonHover" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="#FFCF6E00"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFFF8800"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
+    <Border x:Name="MainBorder" CornerRadius="10" Background="#FF1F1F1F" 
+            BorderBrush="#FFCF6E00" BorderThickness="2"
+            Margin="0,20,0,0">
+
+        <StackPanel Orientation="Vertical" Margin="15">
+            
+
+            <TextBlock x:Name="MessageText" HorizontalAlignment="Center" Foreground="#FFFF8A04" 
+                       FontSize="18" TextWrapping="Wrap" Margin="0,10" Text="Message"/>
+
+            <Button x:Name="OkButton" Content="ok" Width="80" FontSize="15"
+                       Style="{StaticResource ButtonHover}" Click="OkButton_Click" Cursor="Hand" Height="30" Margin="0,15,0,0"
+                    VerticalAlignment="Bottom">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="10"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+    </Border>
+</Window>

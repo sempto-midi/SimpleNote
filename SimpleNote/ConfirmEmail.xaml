@@ -9,19 +9,38 @@
         ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" FontFamily="{DynamicResource Kode}"
         MouseDown="ConfirmEmail1_MouseDown">
 
-    <!--Корректное сворачивание окна-->
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0"
                       UseAeroCaptionButtons="False" ResizeBorderThickness="7"/>
     </WindowChrome.WindowChrome>
 
-    <!--Основной контент-->
-    <StackPanel HorizontalAlignment="Center" Width="1200">
+    <Window.Resources>
+        <Color x:Key="SuccessColor">#FF00FF00</Color>
+        <Color x:Key="ErrorColor">#FFFF0000</Color>
 
+        <Style x:Key="CodeTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Width" Value="60"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="35"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="MaxLength" Value="1"/>
+            <Setter Property="IsEnabled" Value="True"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="10"/>
+                </Style>
+            </Style.Resources>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel HorizontalAlignment="Center" Width="1200">
         <!--Блок закрытия и сворачивания приложения-->
         <StackPanel Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,0,0" Orientation="Horizontal" 
             Background="#FF252525" Width="131" Height="41">
-
             <Button x:Name="Minimize" Content="-" Foreground="White" Width="30" Style="{DynamicResource CloseMinimizeButtonsHover}"
                 Height="30" FontSize="20" Margin="30,0,10,0" HorizontalContentAlignment="Center" HorizontalAlignment="Center" 
                 VerticalAlignment="Center" BorderBrush="White" Cursor="Hand" Click="Minimize_Click">
@@ -33,7 +52,6 @@
                     </Style>
                 </Button.Resources>
             </Button>
-
             <Button x:Name="Close" Content="X" Foreground="White" Width="30" Style="{DynamicResource CloseMinimizeButtonsHover}"
                 Height="30" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand" Click="Close_Click">
                 <Button.Resources>
@@ -61,11 +79,12 @@
         </StackPanel>
 
         <!--TextBox'ы для ввода кода-->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,50,0,0">
+        <StackPanel Orientation="Horizontal" Margin="0,70,0,0" HorizontalAlignment="Center">
             <TextBox x:Name="FirstSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent"
                 Foreground="White" FontSize="35" 
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
-                TextChanged="FirstSymb_TextChanged" GotFocus="FirstSymb_GotFocus">
+                TextChanged="CodeTextBox_TextChanged" GotFocus="CodeTextBox_GotFocus" PreviewTextInput="CodeTextBox_PreviewTextInput"
+                Tag="1">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="CornerRadius" Value="10"></Setter>
@@ -75,7 +94,8 @@
             <TextBox x:Name="SecondSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0"
                 Foreground="White" FontSize="35" 
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
-                TextChanged="SecondSymb_TextChanged" GotFocus="SecondSymb_GotFocus">
+                TextChanged="CodeTextBox_TextChanged" GotFocus="CodeTextBox_GotFocus" PreviewTextInput="CodeTextBox_PreviewTextInput"
+                Tag="2">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="CornerRadius" Value="10"></Setter>
@@ -85,7 +105,8 @@
             <TextBox x:Name="ThirdSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0" 
                 Foreground="White" FontSize="35" 
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
-                TextChanged="ThirdSymb_TextChanged" GotFocus="ThirdSymb_GotFocus">
+                TextChanged="CodeTextBox_TextChanged" GotFocus="CodeTextBox_GotFocus" PreviewTextInput="CodeTextBox_PreviewTextInput"
+                Tag="3">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="CornerRadius" Value="10"></Setter>
@@ -95,7 +116,8 @@
             <TextBox x:Name="FourthSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0" 
                 Foreground="White" FontSize="35" 
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
-                TextChanged="FourthSymb_TextChanged" GotFocus="FourthSymb_GotFocus">
+                TextChanged="CodeTextBox_TextChanged" GotFocus="CodeTextBox_GotFocus" PreviewTextInput="CodeTextBox_PreviewTextInput"
+                Tag="4">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="CornerRadius" Value="10"></Setter>
@@ -105,7 +127,8 @@
             <TextBox x:Name="FifthSymb" Width="60" Height="60" BorderBrush="White" Background="Transparent" Margin="20 0 0 0" 
                 Foreground="White" FontSize="35" 
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="1"
-                GotFocus="FifthSymb_GotFocus">
+                TextChanged="CodeTextBox_TextChanged" GotFocus="CodeTextBox_GotFocus" PreviewTextInput="CodeTextBox_PreviewTextInput"
+                Tag="5">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="CornerRadius" Value="10"></Setter>
@@ -113,16 +136,7 @@
                 </TextBox.Resources>
             </TextBox>
         </StackPanel>
-
-        <!--Кнопка подтверждения-->
-        <Button Name="Confirm" Width="505" Height="55" Style="{DynamicResource RegLoginButtonsHover}" FontSize="28" Foreground="White"
-            Content="confirm" Margin="0,50,0,0" Click="Confirm_Click">
-            <Button.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"></Setter>
-                </Style>
-            </Button.Resources>
-        </Button>
-
+        <Line HorizontalAlignment="Center" Margin="0,70,0,0" Width="450" Height="4" Fill="#FFCF6E00" Stroke="#FFCF6E00" X2="450" StrokeThickness="10" />
+        <Line HorizontalAlignment="Center" Margin="0,15,0,0" Width="281" Height="4" Fill="#FFCF6E00" Stroke="#FFCF6E00" X2="380" StrokeThickness="10" />
     </StackPanel>
 </Window>

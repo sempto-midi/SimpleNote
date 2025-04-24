@@ -66,10 +66,13 @@ namespace SimpleNote
         // Событие для обновления времени
         public event Action<string> TimeUpdated;
 
-        public PianoRoll(AudioEngine audioEngine, Metronome metronome)
+        private readonly PluginManager _pluginManager;
+
+        public PianoRoll(AudioEngine audioEngine, Metronome metronome, PluginManager pluginManager)
         {
             _audioEngine = audioEngine;
             _metronome = metronome;
+            _pluginManager = pluginManager;
 
             InitializeComponent();
             Loaded += PianoRollPage_Loaded;
@@ -295,18 +298,13 @@ namespace SimpleNote
                 var keyButton = new Button
                 {
                     Height = KeyHeight,
-                    Content = noteName,
-                    Padding = new Thickness(0),
-                    Margin = new Thickness(0),
-                    BorderThickness = new Thickness(1),
-                    BorderBrush = Brushes.Gray,
-                    Background = noteName.Contains("#") ? Brushes.Black : Brushes.White,
-                    Foreground = noteName.Contains("#") ? Brushes.White : Brushes.Black,
+                    Content = noteName.Contains("#") ? "#" : noteName, // Триггер сработает, если Content == "#"
                     HorizontalContentAlignment = HorizontalAlignment.Center,
                     VerticalContentAlignment = VerticalAlignment.Center,
                     Tag = 60 + i
                 };
 
+                keyButton.SetResourceReference(Button.StyleProperty, "PianoKeyStyle");
                 keyButton.PreviewMouseDown += Button_MouseDown;
                 keyButton.PreviewMouseUp += Button_MouseUp;
                 PianoKeysPanel.Children.Add(keyButton);
@@ -369,7 +367,7 @@ namespace SimpleNote
             {
                 if (keyButtons.TryGetValue(midiNote, out var keyButton))
                 {
-                    keyButton.Background = highlight ? Brushes.Yellow :
+                    keyButton.Background = highlight ? Brushes.Orange :
                         (keyButton.Content.ToString().Contains("#") ? Brushes.Black : Brushes.White);
                 }
             }));

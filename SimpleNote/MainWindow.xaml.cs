@@ -1,14 +1,7 @@
 ﻿using SimpleNote.Data;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SimpleNote
 {
@@ -27,10 +20,12 @@ namespace SimpleNote
             string usernameOrEmail = Username.Text.Trim();
             string password = Password.Password;
 
+            var nullColor = new SolidColorBrush(Color.FromArgb(187, 187, 187, 100));
             // Проверка на пустые поля
             if (string.IsNullOrEmpty(usernameOrEmail) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Please fill in all fields.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = new CustomMessageBox(this, "please fill in all fields");
+                msg.ShowDialog();
                 return;
             }
 
@@ -41,19 +36,21 @@ namespace SimpleNote
 
                 if (user == null)
                 {
-                    MessageBox.Show("User not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    var msg = new CustomMessageBox(this, "user not found");
+                    msg.ShowDialog();
                     return;
                 }
 
                 // Проверка пароля
                 if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 {
-                    MessageBox.Show("Incorrect password.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    var msg = new CustomMessageBox(this, "incorrect password");
+                    msg.ShowDialog();
                     return;
                 }
 
-                // Открываем окно проектов
-                Projects projWin = new Projects(user.Username);
+                // Открываем окно проектов с передачей username и userId
+                Projects projWin = new Projects(user.Username, user.UserId);
                 this.Close();
                 projWin.Show();
             }
@@ -64,24 +61,6 @@ namespace SimpleNote
             Registration regWin = new Registration();
             this.Close();
             regWin.Show();
-        }
-
-        private void Username_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (Username.Text == "username")
-            {
-                Username.Text = string.Empty;
-                Username.Foreground = Brushes.Black;
-            }
-        }
-
-        private void Password_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (Password.Password == "password")
-            {
-                Password.Password = string.Empty;
-                Password.Foreground = Brushes.Black;
-            }
         }
 
         private void Minimize_Click(object sender, RoutedEventArgs e)

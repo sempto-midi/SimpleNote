@@ -8,6 +8,7 @@
         public string PasswordHash { get; set; }
         public string Role { get; set; } = "User";
         public DateTime CreatedAt { get; set; }
+        public bool EmailConfirmed { get; set; } // Новое поле
 
         public User()
         {

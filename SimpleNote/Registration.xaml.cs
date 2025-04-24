@@ -1,19 +1,10 @@
 ﻿using SimpleNote.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using BCrypt.Net;
 using SimpleNote.Models;
+using System.Net.Mail;
+using System.Windows.Media.Animation;
 
 namespace SimpleNote
 {
@@ -25,60 +16,141 @@ namespace SimpleNote
         public Registration()
         {
             InitializeComponent();
+            InitializeLoadingAnimation();
         }
 
-        private void Register_Click(object sender, RoutedEventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Получаем значения из полей ввода
-            string username = Username.Text.Trim();
-            string email = Email.Text.Trim();
-            string password = Password.Password;
-            string confirmPassword = ConfirmPassword.Password;
-
-            // Проверка на пустые поля
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) ||
-                string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
+            // 1. Анимация появления WELCOME блока
+            var welcomeFadeIn = new DoubleAnimation
             {
-                MessageBox.Show("Please fill in all fields.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromSeconds(1.8),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
 
-            // Проверка подтверждения пароля
-            if (password != confirmPassword)
-            {
-                MessageBox.Show("Passwords do not match.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            Storyboard.SetTarget(welcomeFadeIn, WelcomeBlock);
+            Storyboard.SetTargetProperty(welcomeFadeIn, new PropertyPath(OpacityProperty));
 
-            using (var context = new AppDbContext())
+            var sb = new Storyboard();
+            sb.Children.Add(welcomeFadeIn);
+
+            sb.Completed += (s, args) =>
             {
-                // Проверка существования пользователя с таким же именем или email
-                if (context.Users.Any(u => u.Username == username || u.Email == email))
+                // 2. Анимация перемещения WELCOME блока
+                var moveAnimation = new DoubleAnimation
                 {
-                    MessageBox.Show("Username or email already exists.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // Хэшируем пароль
-                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-                // Создаем нового пользователя
-                var newUser = new User
-                {
-                    Username = username,
-                    Email = email,
-                    PasswordHash = hashedPassword,
-                    Role = "User" // По умолчанию роль "User"
-                    
+                    From = 400,
+                    To = 40,
+                    Duration = TimeSpan.FromSeconds(3),
+                    EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut }
                 };
 
-                // Добавляем пользователя в базу данных
-                context.Users.Add(newUser);
-                context.SaveChanges();
+                // 3. Анимация появления блока регистрации (начинается через 1 сек после начала движения)
+                var registrationFadeIn = new DoubleAnimation
+                {
+                    From = 0,
+                    To = 1,
+                    BeginTime = TimeSpan.FromSeconds(1.3), // Задержка перед стартом
+                    Duration = TimeSpan.FromSeconds(1.5),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
 
-                // Открываем окно подтверждения email (или другое действие после успешной регистрации)
-                ConfirmEmail confemWin = new ConfirmEmail(username, email);
-                this.Close();
-                confemWin.Show();
+                // Запускаем обе анимации
+                WelcomeTranslate.BeginAnimation(TranslateTransform.XProperty, moveAnimation);
+                RegistrationBlock.BeginAnimation(OpacityProperty, registrationFadeIn);
+            };
+
+            sb.Begin();
+        }
+
+        private void InitializeLoadingAnimation()
+        {
+            var rotateAnimation = new DoubleAnimation
+            {
+                From = 0,
+                To = 360,
+                Duration = TimeSpan.FromSeconds(1),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+        }
+
+        private async void Register_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Запускаем асинхронную операцию без блокировки UI
+                await RegisterUserAsync();
+            }
+            catch (Exception ex)
+            {
+                var msg = new CustomMessageBox(this, ex.Message);
+                msg.ShowDialog();
+            }
+        }
+
+        private async Task RegisterUserAsync()
+        {
+            var username = Username.Text.Trim();
+            var email = Email.Text.Trim();
+            var password = Password.Password;
+            var confirmPassword = ConfirmPassword.Password;
+
+            // Проверка в UI-потоке перед началом асинхронных операций
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword)) throw new Exception("please fill in all fields");
+            if (username.Length < 5) throw new Exception("username is too short (min 5)");
+            if (!IsValidEmail(email)) throw new Exception("invalid email format");
+            if (password.Length <= 5) throw new Exception("password is too short (min 6)");
+            if (password != confirmPassword) throw new Exception("passwords do not match");
+            // Основную логику выполняем в фоновом потоке
+            await Task.Run(async () =>
+            {
+                using (var context = new AppDbContext())
+                {
+                    if (context.Users.Any(u => u.Username == username))
+                        throw new Exception("username already exists");
+
+                    if (context.Users.Any(u => u.Email == email))
+                        throw new Exception("e-mail already registered");
+
+                    var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+                    var newUser = new User
+                    {
+                        Username = username,
+                        Email = email,
+                        PasswordHash = hashedPassword,
+                        Role = "User"
+                    };
+
+                    context.Users.Add(newUser);
+                    await context.SaveChangesAsync(); // Асинхронное сохранение
+
+                    // Переход в UI-поток для показа нового окна
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        var confirmWin = new ConfirmEmail(
+                            newUser.Username,
+                            newUser.Email,
+                            newUser.UserId
+                        );
+                        this.Close();
+                        confirmWin.Show();
+                    });
+                }
+            });
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var mailAddress = new MailAddress(email);
+                return mailAddress.Address == email;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -87,42 +159,6 @@ namespace SimpleNote
             MainWindow authWin = new MainWindow();
             this.Close();
             authWin.Show();
-        }
-
-        private void Username_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (Username.Text == "Username")
-            {
-                Username.Text = string.Empty;
-                Username.Foreground = Brushes.Black;
-            }
-        }
-
-        private void Email_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (Email.Text == "E-mail")
-            {
-                Email.Text = string.Empty;
-                Email.Foreground = Brushes.Black;
-            }
-        }
-
-        private void Password_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (Password.Password == "password")
-            {
-                Password.Password = string.Empty;
-                Password.Foreground = Brushes.Black;
-            }
-        }
-
-        private void ConfirmPassword_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (ConfirmPassword.Password == "password")
-            {
-                ConfirmPassword.Password = string.Empty;
-                ConfirmPassword.Foreground = Brushes.Black;
-            }
         }
 
         private void SignUp_MouseDown(object sender, MouseButtonEventArgs e)
